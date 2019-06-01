@@ -1,0 +1,40 @@
+#!/bin/bash
+
+laravel_handler() {
+    read -r -p "Enter Directory: " DIRECTORY
+    
+    sudo chown -R www-data:www-data $DIRECTORY
+    sudo find $DIRECTORY -type f -exec chmod 644 {} \;
+    sudo find $DIRECTORY -type d -exec chmod 755 {} \;
+    sudo chown -R $(whoami):www-data $DIRECTORY
+    sudo find $DIRECTORY -type f -exec chmod 664 {} \;
+    sudo find $DIRECTORY -type d -exec chmod 775 {} \;
+    read -r -p "Is a Laravel project?(Y,N)" IS_LARAVEL
+    if [ $IS_LARAVEL = "Y" ]; then
+        sudo chgrp -R www-data $DIRECTORY/storage $DIRECTORY/bootstrap/cache
+        sudo chmod -R ug+rwx $DIRECTORY/storage $DIRECTORY/bootstrap/cache
+    elif [ $IS_LARAVEL = "N" ]; then
+        read -r -p "Is a Lumen project?(Y,N)" IS_LUMEN
+        if [ $IS_LUMEN = "Y" ]; then
+          sudo chgrp -R www-data $DIRECTORY/storage
+          sudo chmod -R ug+rwx $DIRECTORY/storage
+        fi
+    else
+        echo "You enter wrong, nothing happend."
+    fi
+}
+
+read -r -p "Are you $(whoami)?(Y,N)" ASK_TO_ENABLE_ALL
+
+# Check Conditions
+if [ $ASK_TO_ENABLE_ALL = "Y" ]; then
+    laravel_handler
+elif [ $ASK_TO_ENABLE_ALL = "N" ]; then
+    read -r -p "Enter your username: " USERNAME
+    sudo chown $USERNAME handler
+    handler
+else
+    echo "Execution abort, You must enter Y or N, Please try a gain"
+fi
+
+echo "Finished!"
